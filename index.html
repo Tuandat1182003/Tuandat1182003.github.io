@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DFS Path Finder</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@100&family=Montserrat:wght@200;300;400;500;600;700&family=Poppins:wght@200;300;400;500;600&family=Roboto:wght@300;400;500;700;900&family=Space+Grotesk:wght@300&display=swap');
+
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(45deg, #2F1C53, #A46DFF, #F6D1FD);
+        }
+
+        .title {
+            color: #f7f0f0;
+            text-transform: uppercase;
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .form-insert {
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 50px 60px;
+            border-bottom-right-radius: 0;
+            box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
+        }
+
+        .add-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #7b2bbe;
+            display: inline-block;
+            text-align: center;
+            line-height: 60px;
+            transition: .25s linear;
+        }
+
+        .add-logo i {
+            font-weight: 600;
+            color: #fff;
+            font-size: 22px;
+        }
+
+        .file-insert {
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+        }
+
+        .file-insert:hover .add-logo {
+            background-color: #2F1C53;
+        }
+
+        .file-insert:hover label {
+            border-color: #2F1C53;
+        }
+
+        .file-insert label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 0;
+            border-radius: 40px;
+            border: 3px dotted #7b2bbe;
+            cursor: pointer;
+            align-items: center;
+            padding: 40px 90px;
+            width: 444px;
+            height: 190px;
+        }
+
+        .file-text {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #5f5d5d;
+        }
+
+        .highlight-text {
+            color: #7225b1 !important;
+        }
+
+        input {
+            display: none;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 30px 0;
+            font-size: 50px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        label {
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 7px;
+        }
+
+        input {
+            padding: 3px 10px;
+            width: 100%;
+        }
+
+        .algos {
+            display: flex;
+            width: 564px;
+            justify-content: right;
+        }
+
+        .algos-item {
+            border: 0;
+            outline: 0;
+            width: 100px;
+            height: 60px;
+            background-color: #fff;
+            cursor: pointer;
+            box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+            color: #7b2bbe;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .algos-item:hover {
+            color: #b691fa;
+        }
+
+        .algos-item.active {
+            color: #b691fa;
+        }
+
+        .btn {
+            width: 33.33%;
+            border: none;
+            outline: none;
+            align-items: center;
+            background-clip: padding-box;
+            background-color: #7b2bbe;
+            border: 1px solid transparent;
+            border-radius: .25rem;
+            box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            font-family: system-ui, -apple-system, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            justify-content: center;
+            line-height: 1.25;
+            margin: 0;
+            min-height: 3rem;
+            padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+            position: relative;
+            text-decoration: none;
+            transition: all 250ms;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            vertical-align: baseline;
+        }
+
+        .btn:hover {
+            background-color: #2F1C53;
+            box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+        }
+
+        .btn:active {
+            background-color: #2F1C53;
+            box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+        }
+
+        #path-title {
+            margin-top: 20px;
+        }
+
+        #path {
+            font-weight: 600;
+        }
+
+        .link {
+            fill: none;
+            stroke: #999;
+            stroke-width: 1.5px;
+        }
+    
+        .node {
+            fill: #fff;
+            stroke: #999;
+            stroke-width: 1.5px;
+        }
+    
+        .label {
+            font-weight: 600;
+            font-size: 14px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+
+        .graph {
+            margin-top: 30px;
+            display: none;
+        }
+
+        svg {
+            display: block;
+        }
+
+        .result-container {
+            display: none;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <h1 class="title">DFS</h1>
+    <div class="container">
+        <div class="main-content">
+            <div class="form-insert">
+                <div class="file-insert">
+                    <label for="fileInput">
+                        <span class="add-logo"><i class="fa-solid fa-upload"></i></span>
+                        <p class="file-text"><span class="highlight-text">Drag</span> & <span
+                                class="highlight-text">drop</span> any file here</p>
+                    </label>
+                    <input type="file" id="fileInput" onchange="handleChangeFile()"/>
+                </div>
+                <div class="btns">
+                    <button class="btn" id="btn-result">Show Graph</button><br><br>
+                    <button class="btn" id="btn-export">Export File</button><br><br>
+                    <button class="btn" id="btn-refresh">Refresh</button><br><br>
+                </div>
+            </div>
+            <div class="algos">
+                <button class="algos-item active" data-title="dfs" data-math="dfs" onclick="buttonClicked(this)">dfs</button>
+                <button class="algos-item" data-title="Hill Climbing" data-math="hillClimb" onclick="buttonClicked(this)">hill climbing</button>
+                <button class="algos-item" data-title="Branch & Bound" data-math="branchBound" onclick="buttonClicked(this)">brach & bound</button>
+            </div>
+        </div>
+
+        <div class="result-container">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <td>Expanded Node</td>
+                        <td>Adjacency List</td>
+                        <td>List Q</td>
+                        <td>List L</td>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+
+            <table id="HillClimbTable">
+                <thead>
+                    <tr>
+                        <td>Expanded Node</td>
+                        <td>Adjacency List</td>
+                        <td>List L1</td>
+                        <td>List L</td>
+                    </tr>
+                </thead>
+                <tbody id="HillClimbTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="graph">
+        <h1 class="title">Graph</h1>
+        <svg width="100%" height="400"></svg>
+    </div>
+    <div id="end"></div>
+</body>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="test.js"></script>
+
+</html>
