@@ -1,8 +1,7 @@
 let stopFlag = false;
 let listQ = [];
 let listL = [];
-let listL1 = [];
-let listL2 = [];
+
 //graph for dfs
 class GraphDfs {
   constructor() {
@@ -201,147 +200,158 @@ class GraphDfs {
 //graph for hill climb
 class GraphHillClimbing {
   constructor() {
-      this.edges = [];
-      this.nodes = new Set();
-      this.hillClimbingResult = [];
+    this.edges = [];
+    this.nodes = new Set();
+    this.hillClimbingResult = [];
+    this.path = "";
   }
 
   // Method to add an edge to the graph
   addEdge(edge) {
-      this.edges.push(edge);
-      this.nodes.add(edge.source);
-      this.nodes.add(edge.target);
+    this.edges.push(edge);
+    this.nodes.add(edge.source);
+    this.nodes.add(edge.target);
   }
 
   // Hill Climbing algorithm
   hillClimbing(start, goal) {
-      let current = start;
-      const path = [{ node: start, heuristic: 0, isGoal: false }];
+    let current = start;
+    const path = [{ node: start, heuristic: 0, isGoal: false }];
+    const visited = new Set(); // Để theo dõi các nút đã được thăm
 
-      while (current !== goal) {
-          let nextNode = null;
-          let minHeuristic = Infinity;
+    while (current !== goal) {
+      let nextNode = null;
+      let minHeuristic = Infinity;
 
-          // Tìm đỉnh có giá trị heuristic nhỏ nhất từ các đỉnh kề của đỉnh hiện tại
-          for (const edge of this.edges) {
-              if (edge.source === current) {
-                  if (edge.heuristic < minHeuristic) {
-                      minHeuristic = edge.heuristic;
-                      nextNode = edge.target;
-                  }
-              }
+      // Đánh dấu nút hiện tại đã được thăm
+      visited.add(current);
+
+      // Tìm tất cả các nút láng giềng của nút hiện tại
+      const neighbors = this.edges
+        .filter((edge) => edge.source === current || edge.target === current)
+        .map((edge) =>
+          edge.source === current ? edge.target : edge.source
+        );
+
+      // Duyệt qua các nút láng giềng và chọn nút có trọng số nhỏ nhất
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor)) {
+          const edge = this.edges.find(
+            (edge) =>
+              (edge.source === current && edge.target === neighbor) ||
+              (edge.source === neighbor && edge.target === current)
+          );
+          if (edge.heuristic < minHeuristic) {
+            minHeuristic = edge.heuristic;
+            nextNode = neighbor;
           }
-
-          // Nếu không tìm thấy đỉnh tiếp theo thì dừng thuật toán
-          if (!nextNode) break;
-
-          // Thêm đỉnh tiếp theo vào đường đi và cập nhật giá trị current
-          current = nextNode;
-          path.push({ node: current, heuristic: minHeuristic, isGoal: current === goal });
+        }
       }
 
-      return path;
+      // Nếu không có nút tiếp theo nào được tìm thấy, dừng thuật toán
+      if (!nextNode) break;
+
+      // Thêm nút tiếp theo vào đường đi và cập nhật nút hiện tại
+      current = nextNode;
+      path.push({ node: current, heuristic: minHeuristic, isGoal: current === goal });
+
+      // Kiểm tra xem nếu nút hiện tại là nút đích (goal) thì dừng thuật toán
+      if (current === goal) break;
+    }
+
+    // Gán giá trị đường đi cho thuộc tính path của lớp
+    this.path = path.map(step => step.node).join("->");
+
+    return path;
+  }
+
+  // Initialize list L using the initial state of problem
+  initializeList(startNode) {
+    const L = [startNode];
+    return L;
   }
 
   // Method to create a table from the result
-  createTable = (node, end, visited = {}) => {
-    if (!visited[node] && !stopFlag) {
-        visited[node] = true;
-        const adjacencyList = graphDfs.adjacencyList[node];
-
-        if (Array.isArray(adjacencyList)) {
-            const uniqueListL1 = [...new Set([node, ...adjacencyList, ...listL1])];
-            const uniqueListL2 = [...new Set([...adjacencyList, ...listL2])];
-
-            listL1 = uniqueListL1;
-            listL2 = uniqueListL2;
-
-            for (let i = 0; i < listL2.length; i++) {
-                if (listL2[i] === node) {
-                    listL2.splice(i, 1);
-                }
-            }
-
-            this.hillClimbingResult.push({
-                expandedNode: node,
-                adjacencyList: adjacencyList.join(", "),
-                listL1: listL1.join(", "),
-                listL2: listL2.join(", "),
-            });
-
-            if (node === end) {
-                stopFlag = true;
-                return;
-            }
-
-            adjacencyList.forEach((neighbor) => {
-                listL2.push(neighbor);
-                this.createTable(neighbor, end, visited);
-            });
-        }
-    }
-};
-
-
-  drawTable = () => {
+  createTable(hillClimbResult) {
     const table = document.getElementById("HillClimbTable");
     const tableBody = document.getElementById("HillClimbTableBody");
-    const container = document.querySelector(".container");
+    tableBody.innerHTML = '';
 
-    table.style.display = "block";
-    container.style.justifyContent = "space-around";
-    this.tableResult.forEach((row) => {
+    let appearedNodes = new Set(); // Sử dụng Set để đảm bảo các đỉnh không lặp lại
+
+    hillClimbResult.forEach((step, index) => {
       const newRow = document.createElement("tr");
 
       const expandedNodeCell = document.createElement("td");
-      expandedNodeCell.textContent = row.expandedNode;
+      expandedNodeCell.textContent = `${step.node}-${step.heuristic}`; // Thêm trọng số vào bên cạnh đỉnh
       newRow.appendChild(expandedNodeCell);
 
       const adjacencyListCell = document.createElement("td");
-      adjacencyListCell.textContent = row.adjacencyList;
+      // Tạo danh sách các đỉnh kề từ tập hợp các cạnh của đồ thị
+      const neighbors = this.edges
+          .filter(edge => edge.source === step.node || edge.target === step.node)
+          .map(edge => (edge.source === step.node ? `${edge.target}-${edge.heuristic}` : `${edge.source}-${edge.heuristic}`)); // Thêm trọng số vào bên cạnh đỉnh kề
+      adjacencyListCell.textContent = neighbors.join(", ");
       newRow.appendChild(adjacencyListCell);
 
       const listQCell = document.createElement("td");
-      listQCell.textContent = row.listQ;
+      // Thêm các đỉnh đã xuất hiện vào mảng
+      appearedNodes.add(step.node);
+      listQCell.textContent = [...appearedNodes].join(", ");
       newRow.appendChild(listQCell);
 
       const listLCell = document.createElement("td");
-      listLCell.textContent = row.listL;
+      listLCell.textContent = step.isGoal ? "(Stop)" : ""; // Có phải là nút dừng không
       newRow.appendChild(listLCell);
+
       tableBody.appendChild(newRow);
     });
+  }
 
-    let lastRow = tableBody.children[tableBody.children.length - 1];
-    for (let i = 0; i < lastRow.children.length; i++) {
-      let col = lastRow.children[i];
-      if (i > 0) {
-        col.innerHTML = "(Stop)";
-      }
-    }
-  };
-  // Method to export the table to a file
+  moveListL1ToFrontOfL(L, L1) {
+    // Sắp xếp danh sách L1 theo thứ tự tăng dần của hàm đánh giá
+    L1.sort((a, b) => a.heuristic - b.heuristic);
+    // Chèn L1 vào đầu danh sách L
+    L.unshift(...L1);
+  }
+
+  // Trong phương thức exportTableToFile
   exportTableToFile(filename) {
-      const table = document.getElementById("HillClimbTable");
-      const rows = Array.from(table.rows).map((row) =>
-          Array.from(row.cells).map((cell) => cell.textContent).join("     ")
-      );
-      const content = rows.join("\n");
+    const table = document.getElementById("HillClimbTable");
+    if (!table) {
+      console.error("Table not found.");
+      return;
+    }
 
-      const blob = new Blob([content], { type: "text/plain" });
-      const downloadLink = document.createElement("a");
-      if (window.URL && window.URL.createObjectURL) {
-          downloadLink.href = window.URL.createObjectURL(blob);
-          downloadLink.download = filename;
-      } else {
-          console.error("URL.createObjectURL is not supported in this environment.");
-          return;
-      }
+    let content = '';
+    const rows = Array.from(table.rows).map((row) =>
+      Array.from(row.cells).map((cell) => cell.textContent.trim())
+    );
 
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
+    // Duyệt qua các hàng và ghép các giá trị cột thành một chuỗi, phân tách bằng khoảng trắng
+    content = rows.map(row => row.join("     ")).join("\n");
+    content += `\n\nPath: ${this.path}`; // Sử dụng giá trị của biến path
+
+    // Tạo đối tượng Blob từ nội dung của bảng
+    const blob = new Blob([content], { type: "text/plain" });
+
+    // Tạo đường dẫn URL cho Blob để tạo liên kết tải xuống
+    const downloadLink = document.createElement("a");
+    if (window.URL && window.URL.createObjectURL) {
+      downloadLink.href = window.URL.createObjectURL(blob);
+      downloadLink.download = filename;
+    } else {
+      console.error("URL.createObjectURL is not supported in this environment.");
+      return;
+    }
+
+    // Tạo và kích hoạt liên kết để tải xuống file
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
   }
 }
+
 //graph for branch and bound
 
 const graphDfs = new GraphDfs();
@@ -473,30 +483,30 @@ exportBtn.addEventListener("click", () => {
         reader.onload = function (e) {
             const content = e.target.result;
             const lines = content.split("\n");
-
+        
             // Tạo đồ thị và các giá trị heuristic từ dữ liệu đầu vào
-            const vertices = lines[0].split(", ");
-            const edges = lines[1].split(", ");
-            const heuristicValues = lines[2].split(", ");
+            const vertices = lines[0].split(",");
+            const edges = lines[1].split(",");
+            const heuristicValues = lines[2].split(",");
             const start = lines[3].trim();
             const end = lines[4].trim();
-
+        
             // Khởi tạo đồ thị và thêm các cạnh và giá trị heuristic
-            const graph = new GraphHillClimbing();
+            const graph = new GraphHillClimbing();  
             for (let i = 0; i < edges.length; i++) {
                 const [source, target] = edges[i].split("-");
                 const heuristic = parseInt(heuristicValues[i]);
                 graph.addEdge({ source, target, heuristic });
             }
-
+        
             // Chạy thuật toán Hill Climbing
             const hillClimbResult = graph.hillClimbing(start, end);
-
+            
             // Tạo bảng và xuất kết quả ra file output
-            graph.createTable(start, end);
-          
+            graph.createTable(hillClimbResult);
             graph.exportTableToFile(fileInput.files[0].name.replace('.txt', '_hillclimb_result.txt'));
         };
+        
         reader.readAsText(fileInput.files[0]);
         break;
 
@@ -556,4 +566,3 @@ function scrollToGraph() {
     );
   });
 }
-
